@@ -43,6 +43,21 @@ define os_include_dir
   $(shell perl -e 'use File::Basename;foreach my $$x (qw($1)) {if ($$x =~ m[(^|/)os/]) {if ($$x =~ m[os/(default|$2)/(.*)]) {print "os/$$1/$$2 "}} else {print(basename("$$x")," ")}}')
 endef
 
+# Find out which EPICS versions to build.
+INSTALLED_EPICS_VERSIONS := $(sort $(patsubst ${EPICS_LOCATION}/base-%,%,$(realpath $(wildcard ${EPICS_LOCATION}/base-*[0-9]))))
+EPICS_VERSIONS = $(filter-out ${EXCLUDE_VERSIONS:=%},${DEFAULT_EPICS_VERSIONS})
+MISSING_EPICS_VERSIONS = $(filter-out ${BUILD_EPICS_VERSIONS},${EPICS_VERSIONS})
+BUILD_EPICS_VERSIONS = $(filter ${INSTALLED_EPICS_VERSIONS},${EPICS_VERSIONS})
+$(foreach v,$(sort $(basename $(basename $(basename ${BUILD_EPICS_VERSIONS}))) $(basename $(basename ${BUILD_EPICS_VERSIONS})) $(basename ${BUILD_EPICS_VERSIONS})),$(eval EPICS_VERSIONS_$v=$(filter $v.%,${BUILD_EPICS_VERSIONS})))
+
+SUBMODULES:=$(foreach f,$(wildcard .gitmodules),$(shell awk '/^\[submodule/ { print gensub(/["\]]/,"","g",$$2) }' $f))
+
+# Check only version of files needed to build the module. But which are they?
+VERSIONCHECKFILES = $(filter-out /% -none-, $(USERMAKEFILE) $(wildcard *.db *.template *.subs *.dbd *.cmd *.iocsh) ${SOURCES} ${DBDS} ${TEMPLATES} ${SCRIPTS} $($(filter SOURCES_% DBDS_%,${.VARIABLES})))
+VERSIONCHECKFILES += ${SUBMODULES}
+VERSIONCHECKCMD = ${MAKEHOME}/getVersion.pl ${VERSIONDEBUGFLAG} ${VERSIONCHECKFILES}
+LIBVERSION = $(or $(filter-out test,$(shell ${VERSIONCHECKCMD} 2>/dev/null)),${USER},test)
+VERSIONDEBUGFLAG = $(if ${VERSIONDEBUG}, -d)
 MODULE=
 PROJECT=
 PRJDIR:=$(subst -,_,$(subst .,_,$(notdir $(patsubst %Lib,%,$(patsubst %/snl,%,$(patsubst %/src,%,${PWD}))))))
@@ -57,6 +72,23 @@ export EXCLUDE_ARCHS
 export MAKE_FIRST
 export SUBMODULES
 export USE_LIBVERSION
+
+# Some shell commands:
+RMDIR = rm -rf
+LN = ln -s
+EXISTS = test -e
+NM = nm
+RM = rm -f
+MKDIR = umask 002; mkdir -p -m 775
+
+clean::
+	$(RMDIR) O.*
+
+clean.%::
+	$(RMDIR) $(wildcard O.*${@:clean.%=%}*)
+
+distclean: clean
+
 
 debug::
 	@echo "INSTALLED_EPICS_VERSIONS = ${INSTALLED_EPICS_VERSIONS}"
