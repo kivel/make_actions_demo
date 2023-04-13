@@ -23,6 +23,5 @@ jobs:
 
     - name: Debug
       env:
-        USER: "${{ github.ref_type == 'tag' && 'TAG' || github.actor }}"
-
+        USER: "${{ github.ref_type == 'tag' && github.ref_name || github.ref_type == 'branch' && github.ref_name || github.actor }}"
       run: make debug
