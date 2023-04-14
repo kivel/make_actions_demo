@@ -8,7 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  USER: ${{ ((github.head_ref != 'main' && github.ref_type == 'branch') || (github.head_ref == 'main' && github.ref_type == 'tag')) && github.ref_name || github.actor }}
+  USER: ${{ ((github.ref_name != 'main' && github.ref_type == 'branch') || (github.ref_name == 'main' && github.ref_type == 'tag')) && github.ref_name || github.actor }}
+#  DEV_PUSH: ${{ (github.ref_name == 'main') && (github.ref_type == 'branch') }}
+#  IS_MAIN: ${{ (github.ref_name == 'main') }}
+#  TAG_PUSH: ${{ ((github.ref_name != 'main' && github.ref_type != 'branch') || (github.ref_name == 'main' && github.ref_type == 'tag')) }}
 # ========== LOGIC
 # github.head_ref == 'main' && github.ref_type != 'tag'
 # this is a development push ==> deploy <-- USER = github.actor
@@ -43,3 +46,12 @@ jobs:
         run: env
       - name: Debug
         run: make debug
+#      - name: GITHUB
+#        run: |
+#          echo ref_type $GITHUB_REF_TYPE
+#          echo user     $USER
+#          echo dev      $DEV_PUSH
+#          echo tag/feat $TAG_PUSH
+#          echo is main? $IS_MAIN
+#          echo head_ref_name $GITHUB_REF_NAME
+#          echo ${{ github.ref_name }}
