@@ -8,12 +8,18 @@ on:
   workflow_dispatch:
 
 env:
-  USER: "${{ github.ref_type == 'tag' && github.ref_name || github.actor }}"
+  USER: ${{ ((github.head_ref != 'main' && github.ref_type == 'branch') || (github.head_ref == 'main' && github.ref_type == 'tag')) && github.ref_name || github.actor }}
+# ========== LOGIC
+# github.head_ref == 'main' && github.ref_type != 'tag'
+# this is a development push ==> deploy <-- USER = github.actor
+# ----------------------------------------------------------------------------------------------------------------------
+#((github.head_ref != 'main' && github.ref_type != 'branch') || (github.head_ref == 'main' && github.ref_type == 'tag'))
+# this is a feature branch push or a tag push ==> deploy <-- USER = github.ref_name
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: build
     steps:
     - uses: actions/checkout@v3
@@ -21,14 +27,19 @@ jobs:
       run: env
     - name: Debug
       run: make debug
+    - name: list
+      run: ls -la
 
-  stage:
+# deploy only development versions automatically, or if triggered manually (workflow_dispatch)
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.ref_type != 'tag'
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: build
+      name: deploy
     steps:
-#     - uses: actions/checkout@v3
-    - name: list
-      run: ls -la
-      
+      - uses: actions/checkout@v3
+      - name: Environment
+        run: env
+      - name: Debug
+        run: make debug
