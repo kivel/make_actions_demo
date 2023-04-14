@@ -23,6 +23,7 @@ jobs:
       run: make debug
 
   stage:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: stage
