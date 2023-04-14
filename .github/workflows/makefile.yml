@@ -3,15 +3,17 @@ name: Makefile CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
   workflow_dispatch:
 
 env:
   USER: ${{ ((github.ref_name != 'main' && github.ref_type == 'branch') || (github.ref_name == 'main' && github.ref_type == 'tag')) && github.ref_name || github.actor }}
   DEV_PUSH: ${{ (github.ref_name == 'main') && (github.ref_type == 'branch') }}
   IS_MAIN: ${{ (github.ref_name == 'main') }}
-  TAG_PUSH: ${{ ((github.ref_name != 'main' && github.ref_type != 'branch') || (github.ref_name == 'main' && github.ref_type == 'tag')) }}
+  IS_FEATURE: ${{ (github.ref_name != 'main' && github.ref_type == 'branch') }}
+  IS_TAGGED_MAIN: ${{ (github.ref_name == 'main' && github.ref_type == 'tag') }}
+  TAG_PUSH: ${{ ((github.ref_name != 'main' && github.ref_type == 'branch') || (github.ref_name == 'main' && github.ref_type == 'tag')) }}
 # ========== LOGIC
 # github.head_ref == 'main' && github.ref_type != 'tag'
 # this is a development push ==> deploy <-- USER = github.actor
@@ -53,6 +55,5 @@ jobs:
           echo dev      $DEV_PUSH
           echo tag/feat $TAG_PUSH
           echo is main? $IS_MAIN
-          echo head_ref_name $GITHUB_REF_NAME
-          echo ${{ github.ref_name }}
-
+          echo is tagged main? $IS_TAGGED_MAIN
+          echo is feature branch? $IS_FEATURE
