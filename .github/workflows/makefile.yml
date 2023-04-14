@@ -12,14 +12,22 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    environment: 
+      name: build
     steps:
     - uses: actions/checkout@v3
-
     - name: Environment
       run: env
-
     - name: Debug
       run: make debug
+
+  stage:
+    runs-on: ubuntu-latest
+    environment:
+      name: stage
+    steps:
+#     - uses: actions/checkout@v3
+    - name: Debug
+      run: make debug
+      
