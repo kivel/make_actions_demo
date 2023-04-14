@@ -26,9 +26,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: stage
+      name: build
     steps:
 #     - uses: actions/checkout@v3
-    - name: Debug
-      run: make debug
+    - name: list
+      run: ls -la
       
